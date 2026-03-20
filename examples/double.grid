@@ -1,0 +1,33 @@
+// Doubles numbers 0-9 using grid loop + output pipeline
+//
+// Layout:
+//   ^-->  cntr  dble
+//   ^<--  <--v  prnt
+
+seed [
+  0 |> $
+  # |^ val => val |> $
+]
+
+cntr [
+  # |> val => {
+    if val < 10 {
+      val |> $
+      $ |v (val + 1)
+    } else {
+      halt
+    }
+  }
+]
+
+dble [
+  # |> val => $ |v (val * 2)
+]
+
+prnt [
+  val |v # => IO.puts(val)
+]
+
+main:
+seed	cntr	dble
+^<--	<--v	prnt

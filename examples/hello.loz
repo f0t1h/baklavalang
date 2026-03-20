@@ -1,0 +1,26 @@
+// Hello World: list head/tail pattern matching
+//
+// Layout:
+//   seed  cntr  prnt
+//   ^<--  <--v
+
+seed [
+  String.graphemes("Hello, World!\n") |> $
+  # |^ val => val |> $
+]
+
+cntr [
+  # |> [] => halt
+  # |> [h | t] => {
+    h |> $
+    $ |v t
+  }
+]
+
+prnt [
+  # |> ch => IO.write(ch)
+]
+
+main:
+seed	cntr	prnt
+^<--	<--v

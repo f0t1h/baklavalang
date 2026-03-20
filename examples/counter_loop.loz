@@ -1,0 +1,22 @@
+// Counter loop using built-in relay symbols
+//
+// Layout:
+//   cntr  -->v
+//   ^<--  <--v
+
+cntr [
+  0 |> $
+
+  # |^ val => {
+    if val < 10 {
+      IO.puts(val)
+      val + 1 |> $
+    } else {
+      halt
+    }
+  }
+]
+
+main:
+cntr	-->v
+^<--	<--v
