@@ -16,13 +16,13 @@ defmodule Baklava.Compiler do
 
   @spec compile(AST.Program.t()) :: {:ok, Wiring.t()} | {:error, String.t()}
   def compile(%AST.Program{grids: grids, main: main}) do
-    grid_defs = Map.new(grids, fn g -> {g.name, g} end)
+    grid_defs_base = Map.new(grids, fn g -> {g.name, g} end)
 
-    # Build position map from main layout
-    grid_positions = build_positions(main)
+    # Build position map, expanding duplicate grid names into unique instances
+    {grid_positions, grid_defs} = build_positions(main, grid_defs_base)
 
     # Validate all placed grids are defined
-    with :ok <- validate_definitions(grid_positions, grid_defs),
+    with :ok <- validate_definitions(grid_positions, grid_defs_base),
          # Analyze each grid for its side usage (which sides are inputs, which are outputs)
          side_map <- analyze_all_sides(grid_defs),
          # Build and validate connections
@@ -35,22 +35,56 @@ defmodule Baklava.Compiler do
     end
   end
 
-  defp build_positions(%AST.Main{rows: rows}) do
-    rows
-    |> Enum.with_index()
-    |> Enum.flat_map(fn {row, row_idx} ->
-      row
+  defp build_positions(%AST.Main{rows: rows}, grid_defs_base) do
+    # Collect all placements with their positions
+    placements =
+      rows
       |> Enum.with_index()
-      |> Enum.filter(fn {name, _} -> name != nil end)
-      |> Enum.map(fn {name, col_idx} -> {name, {col_idx, row_idx}} end)
-    end)
-    |> Map.new()
+      |> Enum.flat_map(fn {row, row_idx} ->
+        row
+        |> Enum.with_index()
+        |> Enum.filter(fn {name, _} -> name != nil end)
+        |> Enum.map(fn {name, col_idx} -> {name, {col_idx, row_idx}} end)
+      end)
+
+    # Group by name to find duplicates
+    grouped = Enum.group_by(placements, fn {name, _} -> name end, fn {_, pos} -> pos end)
+
+    # Create instances named <name>_<x>_<y> for all grids
+    {positions, extra_defs} =
+      Enum.reduce(grouped, {%{}, %{}}, fn {name, pos_list}, {pos_acc, def_acc} ->
+        case pos_list do
+          [single_pos] ->
+            {Map.put(pos_acc, name, single_pos), def_acc}
+
+          multiple ->
+            Enum.reduce(multiple, {pos_acc, def_acc}, fn {col, row} = pos, {pa, da} ->
+              instance_name = "#{name}_#{col}_#{row}"
+              base_grid = Map.get(grid_defs_base, name)
+              instance_grid = if base_grid, do: %{base_grid | name: instance_name}, else: nil
+              pa = Map.put(pa, instance_name, pos)
+              da = if instance_grid, do: Map.put(da, instance_name, instance_grid), else: da
+              {pa, da}
+            end)
+        end
+      end)
+
+    grid_defs = Map.merge(grid_defs_base, extra_defs)
+    {positions, grid_defs}
   end
 
   defp validate_definitions(grid_positions, grid_defs) do
     undefined =
       grid_positions
       |> Map.keys()
+      # Strip instance suffix for validation (cldr__0 → cldr)
+      |> Enum.map(fn name ->
+        case Regex.run(~r/^(.+)_\d+_\d+$/, name) do
+          [_, base] -> base
+          _ -> name
+        end
+      end)
+      |> Enum.uniq()
       |> Enum.reject(&Map.has_key?(grid_defs, &1))
 
     case undefined do
