@@ -8,7 +8,7 @@ defmodule Baklava.CLI do
         end
 
       _ ->
-        IO.puts(:stderr, "usage: gridlan <file.grid>")
+        IO.puts(:stderr, "usage: baklava <file.loz>")
     end
   end
 end

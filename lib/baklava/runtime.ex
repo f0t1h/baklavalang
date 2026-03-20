@@ -1,6 +1,6 @@
 defmodule Baklava.Runtime do
   @moduledoc """
-  Executes a compiled gridlan program.
+  Executes a compiled baklavalang program.
   Each grid becomes an Elixir process running compiled BEAM code.
   """
 

@@ -1,21 +1,35 @@
-# Gridlan
+# Baklavalang
 
-**TODO: Add description**
+A spatial dataflow programming language. Programs are built from **grids** — concurrent computing units placed in a 2D coordinate system that communicate through their sides.
 
-## Installation
+Compiles to BEAM bytecode via Elixir.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `gridlan` to your list of dependencies in `mix.exs`:
+## Quick Start
 
-```elixir
-def deps do
-  [
-    {:gridlan, "~> 0.1.0"}
-  ]
-end
+```sh
+mix escript.build
+./baklava examples/hello.loz
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/gridlan>.
+## Example
 
+```
+cntr [
+  0 |> $
+
+  # |^ val => {
+    if val < 10 {
+      IO.puts(val)
+      val + 1 |> $
+    } else {
+      halt
+    }
+  }
+]
+
+main:
+cntr	-->v
+^<--	<--v
+```
+
+See [GUIDE.md](GUIDE.md) for the full language reference.

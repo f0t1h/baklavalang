@@ -1,6 +1,6 @@
 defmodule Baklava.Lexer do
   @moduledoc """
-  Tokenizer for the gridlan language.
+  Tokenizer for baklavalang.
   """
 
   @type token ::

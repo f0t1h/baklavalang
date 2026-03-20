@@ -1,6 +1,6 @@
 defmodule Baklava.Parser do
   @moduledoc """
-  Parser for gridlan. Transforms tokens into AST nodes.
+  Parser for baklavalang. Transforms tokens into AST nodes.
   """
 
   alias Baklava.AST

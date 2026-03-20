@@ -1,6 +1,6 @@
 defmodule Baklava.AST do
   @moduledoc """
-  AST node definitions for gridlan.
+  AST node definitions for baklavalang.
   """
 
   # Top-level program
