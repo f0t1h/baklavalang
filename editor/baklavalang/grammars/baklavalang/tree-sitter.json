@@ -1,0 +1,17 @@
+{
+  "grammars": [
+    {
+      "name": "baklavalang",
+      "camelCase": false,
+      "scope": "source.baklavalang",
+      "path": ".",
+      "file-types": ["loz"]
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "links": {
+      "repository": "https://github.com/f0t1h/baklavalang"
+    }
+  }
+}

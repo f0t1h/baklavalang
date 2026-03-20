@@ -6,3 +6,6 @@ authors = ["baklavalang"]
 schema_version = 1
 
 [grammars.baklavalang]
+repository = "https://github.com/f0t1h/baklavalang"
+path = "editor/baklavalang/grammars/baklavalang"
+commit = "c65c9d2"
