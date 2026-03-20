@@ -77,13 +77,13 @@ defmodule Baklava.Lexer do
   defp tokenize("^<--" <> rest, acc), do: tokenize(rest, [{:relay, :right, :up} | acc])
   defp tokenize("v<--" <> rest, acc), do: tokenize(rest, [{:relay, :right, :down} | acc])
   # Top input
-  defp tokenize("<--v" <> rest, acc), do: tokenize(rest, [{:relay, :top, :left} | acc])
-  defp tokenize("v-->" <> rest, acc), do: tokenize(rest, [{:relay, :top, :right} | acc])
-  defp tokenize("vvvv" <> rest, acc), do: tokenize(rest, [{:relay, :top, :down} | acc])
+  defp tokenize("<--v" <> rest, acc), do: tokenize(rest, [{:relay, :up, :left} | acc])
+  defp tokenize("v-->" <> rest, acc), do: tokenize(rest, [{:relay, :up, :right} | acc])
+  defp tokenize("vvvv" <> rest, acc), do: tokenize(rest, [{:relay, :up, :down} | acc])
   # Bottom input
-  defp tokenize("<--^" <> rest, acc), do: tokenize(rest, [{:relay, :bottom, :left} | acc])
-  defp tokenize("^-->" <> rest, acc), do: tokenize(rest, [{:relay, :bottom, :right} | acc])
-  defp tokenize("^^^^" <> rest, acc), do: tokenize(rest, [{:relay, :bottom, :up} | acc])
+  defp tokenize("<--^" <> rest, acc), do: tokenize(rest, [{:relay, :down, :left} | acc])
+  defp tokenize("^-->" <> rest, acc), do: tokenize(rest, [{:relay, :down, :right} | acc])
+  defp tokenize("^^^^" <> rest, acc), do: tokenize(rest, [{:relay, :down, :up} | acc])
 
   # Two-character tokens
   defp tokenize("|>" <> rest, acc), do: tokenize(rest, [:pipe_right | acc])
@@ -114,6 +114,14 @@ defmodule Baklava.Lexer do
   defp tokenize("$" <> rest, acc), do: tokenize(rest, [:dollar | acc])
   defp tokenize("," <> rest, acc), do: tokenize(rest, [:comma | acc])
   defp tokenize("." <> rest, acc), do: tokenize(rest, [:dot | acc])
+  # :atom_name (Erlang module prefix, e.g. :rand)
+  defp tokenize(<<?: , c, _::binary>> = source, acc) when c in ?a..?z do
+    # skip the colon
+    <<_, rest::binary>> = source
+    {name, rest} = read_ident(rest, "")
+    tokenize(rest, [{:atom, name} | acc])
+  end
+
   defp tokenize(":" <> rest, acc), do: tokenize(rest, [:colon | acc])
   defp tokenize("|" <> rest, acc), do: tokenize(rest, [:pipe | acc])
   defp tokenize("+" <> rest, acc), do: tokenize(rest, [:plus | acc])
@@ -137,6 +145,9 @@ defmodule Baklava.Lexer do
     {num, rest} = read_number(source)
     tokenize(rest, [{:int, num} | acc])
   end
+
+  # Empty cell placeholder: ____
+  defp tokenize("____" <> rest, acc), do: tokenize(rest, [:empty_cell | acc])
 
   # Identifiers and keywords
   defp tokenize(<<c, _::binary>> = source, acc) when c in ?a..?z or c in ?A..?Z or c == ?_ do

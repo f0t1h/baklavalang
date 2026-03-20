@@ -94,6 +94,15 @@ defmodule Baklava.Parser do
         {name, grid} = make_relay_grid(from, to)
         {[name | cells], [grid | relays], rest}
 
+      [:empty_cell, :tab | rest] ->
+        parse_main_row(rest, [nil | cells], relays)
+
+      [:empty_cell, :newline | rest] ->
+        {[nil | cells], relays, rest}
+
+      [:empty_cell | rest] ->
+        {[nil | cells], relays, rest}
+
       [:tab | rest] ->
         parse_main_row(rest, [nil | cells], relays)
 
@@ -107,20 +116,8 @@ defmodule Baklava.Parser do
     Process.put(:relay_counter, n + 1)
     name = "__relay_#{n}"
 
-    # Map from/to to the internal direction names used by receive/emit
-    recv_dir = case from do
-      :left -> :left
-      :right -> :right
-      :top -> :up
-      :bottom -> :down
-    end
-
-    emit_dir = case to do
-      :left -> :left
-      :right -> :right
-      :up -> :up
-      :down -> :down
-    end
+    recv_dir = from
+    emit_dir = to
 
     body = %AST.Block{
       stmts: [
@@ -168,12 +165,26 @@ defmodule Baklava.Parser do
         {body, rest} = parse_stmt_or_block(rest)
         {%AST.Receive{direction: :left, pattern: pattern, body: body}, rest}
 
+      # Receive from right: # <| pattern => body
+      [:hash, :left_pipe | rest] ->
+        {pattern, rest} = parse_receive_pattern(rest)
+        [:arrow | rest] = rest
+        {body, rest} = parse_stmt_or_block(rest)
+        {%AST.Receive{direction: :right, pattern: pattern, body: body}, rest}
+
       # Receive from below: # |^ pattern => body
       [:hash, :pipe_up | rest] ->
         {pattern, rest} = parse_receive_pattern(rest)
         [:arrow | rest] = rest
         {body, rest} = parse_stmt_or_block(rest)
         {%AST.Receive{direction: :down, pattern: pattern, body: body}, rest}
+
+      # Receive from above: # |v pattern => body
+      [:hash, :pipe_down | rest] ->
+        {pattern, rest} = parse_receive_pattern(rest)
+        [:arrow | rest] = rest
+        {body, rest} = parse_stmt_or_block(rest)
+        {%AST.Receive{direction: :up, pattern: pattern, body: body}, rest}
 
       # Let binding: let x = expr
       [:kw_let, {:ident, name}, :equal | rest] ->
@@ -386,6 +397,10 @@ defmodule Baklava.Parser do
 
       [:kw_false | rest] ->
         {%AST.Lit{value: false}, rest}
+
+      [{:atom, mod}, :dot, {:ident, func}, :open_paren | rest] ->
+        {args, rest} = parse_args(rest, [])
+        {%AST.Call{module: {:erlang, mod}, name: func, args: args}, rest}
 
       [{:ident, mod}, :dot, {:ident, func}, :open_paren | rest] ->
         {args, rest} = parse_args(rest, [])

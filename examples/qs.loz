@@ -1,0 +1,29 @@
+// Quicksort - step 1: generate a random list
+//
+// gen loops down->right->up->left (2x2 relay loop via down)
+// when done, emits right to prnt
+//
+// Layout:
+//   gen   prnt
+//   vvvv  ^-->
+
+genr [
+  $ |v {10, []}
+  # |> {n, acc} => {
+    if n == 0 {
+      acc |> $
+      halt
+    } else {
+      let val = :rand.uniform(100)
+      $ |v {n - 1, [val | acc]}
+    }
+  }
+]
+
+prnt [
+  # |> list => IO.inspect(list)
+]
+
+main:
+^-->	genr	prnt
+^<--	<--v    ____

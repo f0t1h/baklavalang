@@ -227,6 +227,13 @@ defmodule Baklava.Codegen do
     {func, [], arg_codes}
   end
 
+  defp compile_expr(%AST.Call{module: {:erlang, mod}, name: name, args: args}) do
+    mod_atom = String.to_atom(mod)
+    func_atom = String.to_atom(name)
+    arg_codes = Enum.map(args, &compile_expr/1)
+    {{:., [], [mod_atom, func_atom]}, [], arg_codes}
+  end
+
   defp compile_expr(%AST.Call{module: mod, name: name, args: args}) do
     mod_atom = String.to_atom("Elixir.#{mod}")
     func_atom = String.to_atom(name)

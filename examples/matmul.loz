@@ -1,0 +1,46 @@
+// Matrix Multiplication (2x2) — shift-register style
+//
+// A = | 1  2 |    B = | 5  6 |
+//     | 3  4 |        | 7  8 |
+//
+// C = A × B = | 19  22 |
+//             | 43  50 |
+//
+// Each element of C is a dot product computed by shifting
+// paired elements through a MAC (multiply-accumulate) loop.
+// One pair is peeled off per loop iteration — like data
+// shifting through a register chain.
+//
+// Layout:
+//   seed  mac
+//   ^<--  <--v
+
+seed [
+  // {a_row, b_col, accumulator, remaining_jobs}
+  // The job queue travels with the data through the loop
+  {[1, 2], [5, 7], 0, [{[1, 2], [6, 8]}, {[3, 4], [5, 7]}, {[3, 4], [6, 8]}]} |> $
+  # |^ val => val |> $
+]
+
+mac [
+  // Shift: peel one a/b pair, multiply-accumulate
+  # |> {[a | at], [b | bt], acc, jobs} => {
+    $ |v {at, bt, acc + a * b, jobs}
+  }
+
+  // Dot product done, more jobs queued: print, start next
+  # |> {[], [], acc, [{row, col} | rest]} => {
+    IO.puts(acc)
+    $ |v {row, col, 0, rest}
+  }
+
+  // Last dot product done: print and halt
+  # |> {[], [], acc, []} => {
+    IO.puts(acc)
+    halt
+  }
+]
+
+main:
+seed	mac
+^<--	<--v

@@ -1,0 +1,8 @@
+id = "baklavalang"
+name = "baklavalang"
+version = "0.1.0"
+description = "Syntax highlighting for baklavalang (.loz files)"
+authors = ["baklavalang"]
+schema_version = 1
+
+[grammars.baklavalang]

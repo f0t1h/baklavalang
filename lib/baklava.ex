@@ -9,10 +9,28 @@ defmodule Baklava do
   Run a baklava program from source code string.
   """
   def run(source) do
+    source = normalize_main_section(source)
+
     with {:ok, tokens} <- Lexer.tokenize(source),
          {:ok, ast} <- Parser.parse(tokens),
          {:ok, wiring} <- Compiler.compile(ast) do
       Runtime.run(wiring)
+    end
+  end
+
+  defp normalize_main_section(source) do
+    case String.split(source, "main:\n", parts: 2) do
+      [before, main_part] ->
+        normalized =
+          main_part
+          |> String.split("\n")
+          |> Enum.map(fn line -> Regex.replace(~r/  +/, line, "\t") end)
+          |> Enum.join("\n")
+
+        before <> "main:\n" <> normalized
+
+      _ ->
+        source
     end
   end
 
