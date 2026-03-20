@@ -48,7 +48,8 @@ defmodule Baklava.Lexer do
     "halt" => :kw_halt,
     "main" => :kw_main,
     "true" => :kw_true,
-    "false" => :kw_false
+    "false" => :kw_false,
+    "let" => :kw_let
   }
 
   @spec tokenize(String.t()) :: {:ok, [token()]} | {:error, String.t()}

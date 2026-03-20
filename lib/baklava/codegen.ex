@@ -167,6 +167,15 @@ defmodule Baklava.Codegen do
     end
   end
 
+  defp compile_stmt(%AST.Let{name: name, value: value}) do
+    var = Macro.var(String.to_atom(name), nil)
+    val_code = compile_expr(value)
+
+    quote do
+      unquote(var) = unquote(val_code)
+    end
+  end
+
   defp compile_stmt(%AST.Call{} = call), do: compile_expr(call)
   defp compile_stmt(%AST.BinOp{} = expr), do: compile_expr(expr)
   defp compile_stmt(%AST.Lit{}), do: quote(do: :ok)

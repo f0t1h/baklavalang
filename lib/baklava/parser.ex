@@ -175,6 +175,11 @@ defmodule Baklava.Parser do
         {body, rest} = parse_stmt_or_block(rest)
         {%AST.Receive{direction: :down, pattern: pattern, body: body}, rest}
 
+      # Let binding: let x = expr
+      [:kw_let, {:ident, name}, :equal | rest] ->
+        {value, rest} = parse_expr(rest)
+        {%AST.Let{name: name, value: value}, rest}
+
       # Halt
       [:kw_halt | rest] ->
         {%AST.Halt{}, rest}

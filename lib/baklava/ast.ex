@@ -68,6 +68,10 @@ defmodule Baklava.AST do
     defstruct []
   end
 
+  defmodule Let do
+    defstruct [:name, :value]
+  end
+
   defmodule Halt do
     defstruct []
   end
